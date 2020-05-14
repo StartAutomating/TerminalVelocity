@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-16"?>
+<!-- Generated with EZOut 1.8.2: Install-Module EZOut or https://github.com/StartAutomating/EZOut -->
+<Configuration>
+  <Controls>
+    <Control>
+      <Name>WindowsTerminalProfileControl</Name>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <ExpressionBinding>
+                <ScriptBlock>
+    @(
+    $wtProf = $_ 
+
+
+    if ($wtProf.Guid) {
+        $wtCoreProps = 'Name','CommandLine','GUID', 'Source'
+
+        $wtProf | 
+            Select-Object $wtCoreProps | 
+            Format-Table -HideTableHeaders -AutoSize |
+            Out-String  
+
+        $wtOther = $wtProf | 
+            Select-Object -Property * -ExcludeProperty $wtCoreProps
+
+        if (@($wtOther.psobject.properties).Length -ge 1) {
+            $wtOther | Format-List | Out-String
+        }
+    }
+    ) -join ''
+</ScriptBlock>
+              </ExpressionBinding>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </Control>
+  </Controls>
+  <ViewDefinitions>
+    <View>
+      <Name>WindowsTerminal.Profile</Name>
+      <ViewSelectedBy>
+        <TypeName>WindowsTerminal.Profile</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Source</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap />
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>$_.Source -split '\.' | Select-Object -Last 1 </ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>CommandLine</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+  </ViewDefinitions>
+</Configuration>
