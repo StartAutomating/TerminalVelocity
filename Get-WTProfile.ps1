@@ -37,11 +37,11 @@
     [string[]]
     $ColorScheme,
 
-    # If -Global is present, Get-WTProfile returns the global profile.
-    [Parameter(Mandatory,ParameterSetName='Global',ValueFromPipelineByPropertyName)]
-    [Alias('Setting', 'Settings')]
+    # If -Setting is present, Get-WTProfile returns the global settings.
+    [Parameter(Mandatory,ParameterSetName='GlobalSettings',ValueFromPipelineByPropertyName)]
+    [Alias('Global','Settings', 'GlobalSetting','GlobalSettings')]
     [switch]
-    $Global,
+    $Setting,
 
     # If -Default is present, Get-WTProfile returns the default profile settings.
     [Parameter(Mandatory,ParameterSetName='Default',ValueFromPipelineByPropertyName)]
@@ -52,12 +52,19 @@
     # If -Current is present, Get-WTProfile attempts to determine the current profile
     [Parameter(Mandatory,ParameterSetName='Current',ValueFromPipelineByPropertyName)]
     [switch]
-    $Current
+    $Current,
+
+    # If -KeyBinding is present, Get-WTProfile will return keybindings.
+    [Parameter(Mandatory,ParameterSetName='KeyBinding',ValueFromPipelineByPropertyName)]
+    [Alias('Keys','KeyBindings')]
+    [switch]
+    $KeyBinding
     )
 
     begin {
         #region Locate the Profile
-        if (-not $script:WTProfilePath) {
+        # We only need to find the profile once, so let's cache the filinfo in $script:WTProfilePath
+        if (-not $script:WTProfilePath) {  
             $script:WTProfilePath =
                 if ($PSVersionTable.Platform -ne 'Windows' -and (Test-Path '/mnt')) {
                     Get-ChildItem '/mnt' |
@@ -78,6 +85,15 @@
         }
         #endregion Locate the Profile
 
+        #region Declare Decorate Filter
+        # A lot of this script boils down to "run this pipeline and change the PSTypenames"
+        # so we'll declare a filter called decorate to save code.
+        filter decorate([string]$pstypename) {            
+            $_.pstypenames.clear()
+            $_.pstypenames.add($pstypename)
+            $_
+        }
+        #endregion Declare Decorate Filter
         if ($PSVersionTable.PSVersion -lt '7.0') {
 # If we're using an older version of PowerShell, ConvertFrom-JSON won't handle comments.
 # So override it.
@@ -223,66 +239,56 @@ function ConvertFrom-Json
 
         $wtProfile =
             [IO.File]::ReadAllText($script:WTProfilePath.FullName) | # Read the profile
-                ConvertFrom-Json                                     # convert it from JSON
-        $wtProfile.pstypenames.clear()
-        $wtProfile.pstypenames.add('WindowsTerminal.Settings')       # decorate it as a 'WindowsTerminal.Settings'
-        $wtProfile |                                                 # and keep the path
-            Add-Member NoteProperty Path $script:WTProfilePath.FullName -Force
+                ConvertFrom-Json                                   | # convert it from JSON
+                    decorate WindowsTerminal.Settings              | # decorate it as a 'WindowsTerminal.Settings'
+                                                                     # and keep the path
+                        Add-Member NoteProperty Path $script:WTProfilePath.FullName -Force -PassThru
 
 
-
-        if ($paramSet -eq 'ColorScheme') {
-            if (-not $ColorScheme) { $ColorScheme = '*' }
-            :nextColorScheme foreach ($wtScheme in $wtProfile.schemes) {
-                foreach ($cs in $ColorScheme) {
-                    if ($wtScheme.Name -notlike $cs) { continue }
-                    $wtScheme.pstypenames.clear()
-                    $wtScheme.pstypenames.add('WindowsTerminal.ColorScheme')
-                    $wtScheme
-                    continue nextColorScheme
+        switch ($paramSet) {
+            ColorScheme {
+                if (-not $ColorScheme) { $ColorScheme = '*' }
+                :nextColorScheme foreach ($wtScheme in $wtProfile.schemes) {
+                    foreach ($cs in $ColorScheme) {
+                        if ($wtScheme.Name -notlike $cs) { continue }
+                        $wtScheme | decorate 'WindowsTerminal.ColorScheme'
+                        continue nextColorScheme
+                    }
                 }
             }
-        }
-        elseif ($paramSet -eq 'Name') {
-            if (-not $ProfileName) { $ProfileName = '*' }
-            :nextProfile foreach ($wtProf in $wtProfile.profiles.list) {
-                foreach ($pn in $ProfileName) {
-                    if ($wtProf.Name -notlike $pn -and $wtProf.guid -notlike $pn) { continue }
-                    $wtProf.pstypenames.clear()
-                    $wtProf.pstypenames.add('WindowsTerminal.Profile')
-                    $wtProf
-                    continue nextProfile
-
+            Name { 
+                if (-not $ProfileName) { $ProfileName = '*' }
+                :nextProfile foreach ($wtProf in $wtProfile.profiles.list) {
+                    foreach ($pn in $ProfileName) {
+                        if ($wtProf.Name -notlike $pn -and $wtProf.guid -notlike $pn) { continue }
+                        $wtProf | decorate 'WindowsTerminal.Profile'
+                        continue nextProfile
+                    }
                 }
             }
-        }
-        elseif ($paramSet -eq 'Guid') {
-            foreach ($wtProf in $wtProfile.profiles.list) {
-                if ($guid -notcontains $wtProf.guid) {continue }
-                $wtProf.pstypenames.clear()
-                $wtProf.pstypenames.add('WindowsTerminal.Profile')
-                $wtProf
-            }
-        }
-        elseif ($paramSet -eq 'Global') {
-            $wtProfile
-        }
-        elseif ($paramSet -eq 'Default') {
-            $defaultProf = $wtProfile.profiles.default
-            if ($defaultProf) {
-                $defaultProf.pstypenames.clear()
-                $defaultProf.pstypenames.add('WindowsTerminal.Profile')
-                $defaultProf
-            }
-        }
-        elseif ($paramSet -eq 'Current') {
-            if (-not $ENV:WT_PROFILE_ID) { return }
-            foreach ($Prof in $wtProfile.profiles.list) {
-                if ($prof.Guid -eq $ENV:WT_PROFILE_ID) {
-                    $prof.pstypenames.clear()
-                    $prof.pstypenames.add('WindowsTerminal.Profile')
-                    $prof
+            Guid {
+                foreach ($wtProf in $wtProfile.profiles.list) {
+                    if ($guid -notcontains $wtProf.guid) {continue }
+                    $wtProf | decorate 'WindowsTerminal.Profile'
                 }
+            }
+            Default {
+                $defaultProf = $wtProfile.profiles.default
+                if ($defaultProf) {
+                    $defaultProf | decorate 'WindowsTerminal.Profile'
+                }            
+            }
+            GlobalSettings { $wtProfile }
+            Current {
+                if (-not $ENV:WT_PROFILE_ID) { return }
+                foreach ($Prof in $wtProfile.profiles.list) {
+                    if ($prof.Guid -eq $ENV:WT_PROFILE_ID) {
+                        $prof | decorate 'WindowsTerminal.Profile'
+                    }
+                }
+            }
+            KeyBinding {
+                $wtProfile.keyBindings | decorate 'windowsTerminal.KeyBinding'
             }
         }
     }
