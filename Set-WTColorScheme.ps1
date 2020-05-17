@@ -22,13 +22,14 @@
     param(
     # The name of the color scheme
     [Parameter(Mandatory,ValueFromPipelineByPropertyName)]
+    [Alias('Name')]
     [string]
     $ColorScheme,
 
     # The name or ID of the tab profiles the color scheme will be applied to.
     # If this is not provided, it will attempt to auto-detect based off of the window title.
     [Parameter(ValueFromPipelineByPropertyName)]
-    [Alias('Profile','GUID','Name')]
+    [Alias('Profile','GUID')]
     [string[]]
     $ProfileName
     )
@@ -36,6 +37,10 @@
     process {
 
         $prof = Get-WTProfile -Global
+
+        if ($_.Name -and $_.Guid) { # If we've been piped in a profile
+            $ProfileName = $_.Guid
+        }
 
         #region Find the tab profile target
         if (-not $ProfileName -and $env:WT_PROFILE_ID) {
