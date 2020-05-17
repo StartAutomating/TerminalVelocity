@@ -10,7 +10,7 @@
     .Example
         Show-WT -ImagePath .\My.gif  # Shows My.gif in the current Windows Terminal profile.
     .Example
-        Show-WT -ImagePath .\My.gif -Duration -1 # Shows My.gif
+        Show-WT -ImagePath .\My.gif -Wait -1 # Shows My.gif forever
     .Link
         Get-WTProfile
     .Link
@@ -57,13 +57,32 @@
     # If the duration is negative, the image will not be automatically cleared.
     [Parameter(ParameterSetName='ImageFile',ValueFromPipelineByPropertyName)]
     [Timespan]
-    $Duration = '00:00:15',
+    $Wait,
 
-    # If set, will wait for the duration to complete.
-    # If the duration is negative, this parameter is ignored.
+    # Sets the number of times an animated .gif should be looped.
     [Parameter(ParameterSetName='ImageFile',ValueFromPipelineByPropertyName)]
+    [int]
+    $LoopCount = 1,
+
+    <#
+    When useAcrylic is set to true, it sets the transparency of the window for the profile.
+    Accepts floating point values from 0-1 (default 0.5).
+    #>
+    [Parameter(ParameterSetName='ImageFile',ValueFromPipelineByPropertyName)]
+    [float]
+    $AcrylicOpacity,
+
+    <#
+    When set to true, the window will have an acrylic background.
+    When set to false, the window will have a plain, untextured background.
+    #>
+    [Parameter(ValueFromPipelineByPropertyName)]
     [switch]
-    $Wait
+    $UseAcrylic,
+
+    # If set, will run in a background job.
+    [switch]
+    $AsJob
     )
 
 
@@ -80,77 +99,144 @@ Import-Module '$($MyInvocation.MyCommand.Module.Path | Split-Path)'
 $($MyInvocation.MyCommand.Name) @parameters
 "@)
         #endregion Prepare Background Job
+
+        $getGifLength = {
+            param([string]$resolvedPath)
+            if (-not ('Drawing.Image' -as [type])) {
+                Add-Type -AssemblyName System.Drawing
+            }
+            $img = [Drawing.Image]::FromFile($resolvedPath)
+            $frameCount =
+                try {
+                    $img.GetFrameCount([Drawing.Imaging.FrameDimension]::Time)
+                } catch {0}
+
+            $frameTimes = try { $img.GetPropertyItem(20736).Value } catch { 0 }
+            if ($frameTimes) {
+                $totalMS = 0
+                for ($i=0; $i -lt $frameCount; $i++) {
+                    $totalMS+=[BitConverter]::ToInt32($frameTimes,$i * 4) * 10
+                }
+                [Timespan]::FromMilliseconds($totalMS)
+            }
+            $img.Dispose()
+        }
+        $accumulateArgs = [Collections.Generic.List[Collections.IDictionary]]::new()
     }
+
+
     process {
-        if ($PSCmdlet.ParameterSetName -eq 'ImageFile') {
-            $resolvedPath = $ExecutionContext.SessionState.Path.GetResolvedPSPathFromPSPath($ImagePath)
-            if (-not $resolvedPath) { return }
+        $accumulateArgs.Add((@{} + $PSBoundParameters))
+    }
+    end {
+        foreach ($acc in $accumulateArgs) {
+            foreach ($kv in $acc.GetEnumerator()) {
+                $ExecutionContext.SessionState.PSVariable.Set($kv.Key, $kv.Value)
+            }
+            if ($PSCmdlet.ParameterSetName -eq 'ImageFile') {
 
-            if ($Wait) {
 
+
+            if (-not $targetProfile) {
                 $targetProfile =
                     if (-not $ProfileName) {
                         Get-WTProfile -Current
                     } else {
                         Get-WTProfile -ProfileName $ProfileName
                     }
+            }
 
-                if (-not $targetProfile) {
-                    $targetProfile = Get-WTProfile -Default
-                }
+            if (-not $targetProfile) {
+                $targetProfile = Get-WTProfile -Default
+            }
 
+            if (-not $targetProfile) {
+                Write-Error "No target profile - WT_PROFILE_ID '$env:WT_PROFILE_ID'"
+                return
+            }
 
-                if (-not $targetProfile) {
-                    "No target profile - $env:WT_PROFILE_ID" | Out-Host
-                }
-
-
-
-                if (-not $PSBoundParameters['Duration'] -and $ImagePath -like '*.gif') {
-                    if (-not ('Drawing.Image' -as [type])) {
-                        Add-Type -AssemblyName System.Drawing
+            $imageFileUri = $imagePath -as [uri]
+            if ($imageFileUri.Authority) {
+                $imageDest =
+                    if ($PSVersionTable.OS -and $PSVersionTable.OS -notlike '*windows*') {
+                        Join-Path "/home/$($env:USER)/Pictures" $imageFileUri.Segments[-1]
+                    } else {
+                        Join-Path "$home\Pictures" $imageFileUri.Segments[-1]
                     }
-                    $img = [Drawing.Image]::FromFile($resolvedPath)
-                    $frameCount =
-                        try {
-                            $img.GetFrameCount([Drawing.Imaging.FrameDimension]::Time)
-                        } catch {0}
+                $newFile = New-Item -ItemType File -Path $imageDest -Force
+                [Net.Webclient]::new().DownloadFile($imageFileUri, $newFile.FullName)
+                $imagePath = $newFile.FullName
+            }
+            $resolvedPath = $ExecutionContext.SessionState.Path.GetResolvedPSPathFromPSPath($ImagePath)
+            if (-not $resolvedPath) { return }
 
-                    $frameTimes = try { $img.GetPropertyItem(20736).Value } catch { 0 }
-                    if ($frameTimes) {
-                        $totalMS = 0
-                        for ($i=0; $i -lt $frameCount; $i++) {
-                            $totalMS+=[BitConverter]::ToInt32($frameTimes,$i * 4) * 10
-                        }
-                        $Duration = [Timespan]::FromMilliseconds($totalMS)
-                    }
-                    $img.Dispose()
-                }
 
-                $updatedProfile = $targetProfile |
-                    Add-Member backgroundImage "$resolvedPath" -Force -PassThru |
-                    Add-Member backgroundImageOpacity $Opacity -Force -PassThru |
-                    Add-Member backgroundImageAlignment $Alignment -Force -PassThru |
-                    Add-Member backgroundImageStrechMode $StretchMode -Force -PassThru |
-                    Add-Member useAcrylic $true -Force -PassThru
+            $myParameters = @{} + $PSBoundParameters
+            $resolvedPath = Get-Item -LiteralPath $resolvedPath | Select-Object -ExpandProperty Fullname
 
-                if ($targetProfile.guid) {
-                    # $updatedProfile | Out-Host
-                    Set-WTProfile -ProfileName $targetProfile.guid -Confirm:$false -InputObject $updatedProfile -PassThru | Out-Host
+            $myParameters['ImagePath'] = "$resolvedPath"
+            if (-not $ProfileName -and $ENV:WT_PROFILE_ID) {
+                $ProfileName = $myParameters['ProfileName'] = $ENV:WT_PROFILE_ID
+            }
+            if ($AsJob) {
+                $myParameters.Remove('AsJob')
+                & $jobCmd -ScriptBlock $jobDef -ArgumentList $MyParameters
+                return
+            }
+
+
+
+
+            $wasUsingAcrylic = ($targetProfile.useAcrylic -as [bool])
+            $oldAcrylicOpacity = ($targetProfile.acrylicOpacity -as [float])
+            $realPath =
+                if ($resolvedPath -like '/mnt/*') { # If we're trying to show an image with a mounted path
+                    $resolvedPath -replace '/mnt/(?<Letter>[a-z])', '${Letter}:\' -replace '/', '\'
+                } elseif ($PSVersionTable.OS -and
+                    $PSVersionTable.OS -notlike '*Windows*' -and $env:WSL_DISTRO_NAME) {
+                    "\\wsl$\$($env:WSL_DISTRO_NAME)\" + ($resolvedPath -replace '/','\')
                 } else {
-                    $updatedProfile | Out-Host
-                    Set-WTProfile -Default -Confirm:$false -InputObject $updatedProfile -PassThru
+                    $resolvedPath
                 }
 
-                if ($Duration.TotalMilliseconds -ge 0) {
-                    [Threading.Thread]::Sleep($Duration.TotalMilliseconds)
 
+            $updatedProfile = $targetProfile |
+                Add-Member backgroundImage "$realPath" -Force -PassThru |
+                Add-Member backgroundImageOpacity $Opacity -Force -PassThru |
+                Add-Member backgroundImageAlignment $Alignment -Force -PassThru |
+                Add-Member backgroundImageStrechMode $StretchMode -Force -PassThru
+
+            if ($AcrylicOpacity) {
+                $updatedProfile = $updatedProfile |
+                    Add-Member acrylicOpacity $AcrylicOpacity -Force -PassThru
+            }
+
+            if ($targetProfile.guid) {
+                Set-WTProfile -ProfileName $targetProfile.guid -Confirm:$false -InputObject $updatedProfile
+            } else {
+                Set-WTProfile -Default -Confirm:$false -InputObject $updatedProfile
+            }
+
+            if (-not $PSBoundParameters['Wait'] -and $ImagePath -like '*.gif') {
+                $Wait = try {
+                    & $getGifLength $resolvedPath
+                } catch {
+                    [Timespan]::FromSeconds(2.5 * (Get-Item -LiteralPath $resolvedPath).Length /1mb)
+                }
+            }
+            if ($LoopCount -ne 1) {
+                $wait = [Timespan]::FromMilliseconds((& $getGifLength $resolvedPath).TotalMilliseconds * $LoopCount)
+            }
+            if ($Wait.TotalMilliseconds -ge 0) {
+                [Threading.Thread]::Sleep($Wait.TotalMilliseconds)
+                if ($acc -eq $accumulateArgs[-1]) {
                     $blankImageFields = [PSCustomObject]@{
                         backgroundImage =''
                         backgroundImageOpacity = ''
                         backgroundImageAlignment = ''
                         backgroundImageStretchMode = ''
-                        useAcrylic = $false
+                        useAcrylic = $wasUsingAcrylic
+                        acrylicOpacity = $oldAcrylicOpacity
                     }
                     if ($targetProfile.guid) {
                         $blankImageFields |
@@ -160,14 +246,10 @@ $($MyInvocation.MyCommand.Name) @parameters
                             Set-WTProfile -Default -Confirm:$false
                     }
                 }
-            } else {
-                $myParameters = @{Wait=$true} + $PSBoundParameters
-                $myParameters['ImagePath'] = "$resolvedPath"
-                if (-not $ProfileName -and $ENV:WT_PROFILE_ID) {
-                    $myParameters['ProfileName'] = $ENV:WT_PROFILE_ID
-                }
-                & $jobCmd -ScriptBlock $jobDef -ArgumentList $MyParameters
+
+
             }
+        }
         }
     }
 }

@@ -22,20 +22,29 @@
     param(
     # The name of the color scheme
     [Parameter(Mandatory,ValueFromPipelineByPropertyName)]
+    [Alias('Name')]
     [string]
     $ColorScheme,
 
     # The name or ID of the tab profiles the color scheme will be applied to.
     # If this is not provided, it will attempt to auto-detect based off of the window title.
     [Parameter(ValueFromPipelineByPropertyName)]
-    [Alias('Profile','GUID','Name')]
+    [Alias('Profile','GUID')]
     [string[]]
-    $ProfileName
+    $ProfileName,
+
+    # If set, will pass thru the changes.
+    [switch]
+    $PassThru
     )
 
     process {
 
         $prof = Get-WTProfile -Global
+
+        if ($_.Name -and $_.Guid) { # If we've been piped in a profile
+            $ProfileName = $_.Guid
+        }
 
         #region Find the tab profile target
         if (-not $ProfileName -and $env:WT_PROFILE_ID) {
@@ -47,7 +56,7 @@
         #endregion Find the tab profile target
 
         #region Change Tab profile target
-        $changed = $false
+        $changed = @()
         foreach ($tabProf in $prof.profiles.list) {
             if ($ProfileName) {
                 $ok = $false
@@ -64,15 +73,13 @@
             }
 
             if ($ok -and $tabProf.colorScheme -ne $ColorScheme) {
-                $tabProf | Add-Member NoteProperty colorScheme $ColorScheme -Force
-                $changed = $true
+                $changed +=$tabProf | Add-Member NoteProperty colorScheme $ColorScheme -Force -PassThru
             }
         }
         if (-not $changed -and -not $ProfileName) {
             if ($prof.profiles.default.colorScheme -ne $ColorScheme) {
-                $prof.profiles.default |
-                    Add-Member NoteProperty colorScheme $ColorScheme -Force
-                $changed = $true
+                $changed += $prof.profiles.default |
+                    Add-Member NoteProperty colorScheme $ColorScheme -Force -PassThru
             }
         }
         #endregion Change Tab profile target
@@ -81,11 +88,34 @@
         if ($changed -and $PSCmdlet.ShouldProcess("Update $($prof.Path)")) {
             $wtPath = $prof.Path
             $prof.psobject.properties.Remove('Path')
-            $prof |
-                ConvertTo-Json -Depth 100 |
-                Set-Content -LiteralPath $wtPath -Force -Encoding UTF8
-        } elseif ($WhatIfPreference) {
-            $prof
+            $json = $prof | ConvertTo-Json -Depth 100
+            $tries = 3
+            do {
+                try {
+                    [IO.File]::WriteAllText($wtPath, $JSON, [Text.Encoding]::UTF8)
+                    break
+                } catch {
+                    $tries--
+                    Write-Warning "$_ : $tries Left"
+                    [Threading.Thread]::Sleep(100)
+                }
+            } while ($tries)
+        }
+
+        if ($WhatIfPreference) {
+            $changed
+        }
+
+        if ($PassThru) {
+            $changedNames = $changed | Select-Object -ExpandProperty colorScheme -Unique
+            $prof.schemes |
+                Where-Object {$changedNames -contains $_.Name } |
+                ForEach-Object {
+                    $_.pstypenames.clear()
+                    $_.pstypenames.add('WindowsTerminal.ColorScheme')
+                    $_
+                }
+
         }
         #endregion Update File
     }

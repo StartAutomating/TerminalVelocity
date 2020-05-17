@@ -174,6 +174,10 @@ describe WTX {
                 should match '^(?>dos|powershell|windows powershell|ubuntu|kali-linux-powershell|kali-linux)$'
         }
 
+        it 'Can backup a profile' {
+            Backup-WTProfile 
+        }
+
         it 'Can remove a profile' {
             Remove-WTProfile -ProfileName DOS -Confirm:$false
 
@@ -195,7 +199,15 @@ describe WTX {
                 Select-Object -ExpandProperty ColorScheme |
                 should be Batman
         }
+        it 'Can remove color schemes' {
+            Remove-WTColorScheme -ColorScheme Grape -Confirm:$false
+            Get-WTColorScheme |
+                Select-Object -ExpandProperty Name |
+                should match  '^(?>Jackie Brown|Batman|AdventureTime)$'
+        }
     }
+
+    
 }
 
 Remove-Item $wtSettingsPath
