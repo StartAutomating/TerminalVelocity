@@ -12,4 +12,5 @@
             LicenseURI = 'https://github.com/StartAutomating/WTX/blob/master/LICENSE'
         }
     }
+    FormatsToProcess = 'WTX.format.ps1xml'
 }
