@@ -145,7 +145,6 @@ $wtSettingsPath = if ($PSVersionTable.OS -and $PSVersionTable.OS -notlike '*Wind
 
 
 $windowsTerminalTestProfile | ConvertTo-Json -Depth 100 | Set-Content $wtSettingsPath -Encoding UTF8
-
 . $wtxModule {
     $script:WTProfilePath = Get-Item "$args"
 } $wtSettingsPath
@@ -153,7 +152,7 @@ $windowsTerminalTestProfile | ConvertTo-Json -Depth 100 | Set-Content $wtSetting
 
 describe WTX {
     it 'Can Get Global Settings' {
-        Get-WTProfile -Global | Select-Object -ExpandProperty Path | should be $wtsettingsPath
+        Get-WTProfile -Global | Select-Object -ExpandProperty Path | should belike '*wtSettingsTest'
     }
 
     
