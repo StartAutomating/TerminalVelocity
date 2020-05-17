@@ -155,13 +155,13 @@ describe WTX {
         Get-WTProfile -Global | Select-Object -ExpandProperty Path | should belike '*wtSettingsTest.json'
     }
 
-
+    
 
     context Profiles {
 
 
         it 'Can List Profiles' {
-            Get-WTProfile |
+            Get-WTProfile | 
                 Select-Object -ExpandProperty Name |
                 should match '^(?>powershell|windows powershell|ubuntu|kali-linux-powershell|kali-linux)$'
         }
@@ -169,7 +169,7 @@ describe WTX {
         it 'Can add a profile' {
             Add-WTProfile -Name DOS -Commandline cmd
 
-            Get-WTProfile |
+            Get-WTProfile | 
                 Select-Object -ExpandProperty Name |
                 should match '^(?>dos|powershell|windows powershell|ubuntu|kali-linux-powershell|kali-linux)$'
         }
@@ -177,7 +177,7 @@ describe WTX {
         it 'Can remove a profile' {
             Remove-WTProfile -ProfileName DOS -Confirm:$false
 
-            Get-WTProfile |
+            Get-WTProfile | 
                 Select-Object -ExpandProperty Name |
                 should match '^(?>powershell|windows powershell|ubuntu|kali-linux-powershell|kali-linux)$'
         }
@@ -191,9 +191,15 @@ describe WTX {
         }
         it 'Can set color schemes' {
             Set-WTColorScheme -ProfileName PowerShell -ColorScheme Batman
-            Get-WTProfile -ProfileName PowerShell |
+            Get-WTProfile -ProfileName PowerShell | 
                 Select-Object -ExpandProperty ColorScheme |
                 should be Batman
+        }
+        it 'Can remove color schemes' {
+            Remove-WTColorScheme -ColorScheme Grape -Confirm:$false
+            Get-WTColorScheme |
+                Select-Object -ExpandProperty Name |
+                should match  '^(?>Jackie Brown|Batman|AdventureTime)$'
         }
     }
 }
@@ -201,5 +207,5 @@ describe WTX {
 Remove-Item $wtSettingsPath
 
 . $wtxModule {
-    $script:WTProfilePath = $null
+    $script:WTProfilePath = $null   
 }
