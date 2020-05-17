@@ -1,6 +1,6 @@
 ﻿function Remove-WTColorScheme
 {
-    [CmdletBinding(SupportsShouldProcess)]
+    [CmdletBinding(SupportsShouldProcess,ConfirmImpact='Low')]
     param(
     # The name of the color scheme.
     [Parameter(Mandatory,ValueFromPipelineByPropertyName)]
@@ -11,6 +11,8 @@
 
     process {
         #region Get Color Scheme
+        $PSBoundParameters.Remove('Confirm')
+        $PSBoundParameters.Remove('WhatIf')
         $matchingSchemes = Get-WTColorScheme @PSBoundParameters           # call Get-WTProfile
         $matchingSchemeNames = $matchingSchemes | 
             Select-Object -ExpandProperty Name
