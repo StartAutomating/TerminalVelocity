@@ -161,7 +161,7 @@ $($strArg + [Environment]::Newline)'@" + [Environment]::NewLine
             }
             Start-Process  -FilePath $myPowerShell -ArgumentList '-command', "Start-Process wt.exe -ArgumentList $EmbeddedArguments" -Verb Runas
         } else {
-            Start-Process @startArgs wt.exe -ArgumentList $allArgs -PassThru:$PassThru
+            Start-Process wt.exe -ArgumentList $allArgs -PassThru:$PassThru
         }
 
     }
