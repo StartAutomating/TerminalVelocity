@@ -75,7 +75,12 @@
 
     # If set, will return the created process.
     [switch]
-    $Passthru
+    $Passthru,
+
+    # If set, will start the process elevated
+    [Alias('RunAsAdministrator')]
+    [switch]
+    $Elevated
     )
 
 
@@ -133,6 +138,31 @@
 
     end {
         Write-Verbose "$allArgs"
-        Start-Process wt.exe -ArgumentList $allArgs -PassThru:$PassThru
+
+
+        if ($Elevated) # If we're going to run elevated,
+        {
+            # we actually need to start wt.exe from a process that is already elevated
+            # so we'll launch PowerShell, and pass the -command
+            $EmbeddedArguments = "@($(
+                foreach ($arg in $allArgs) {
+                    $strArg = "$arg"
+                    if ($strArg.Contains([Environment]::NewLine)) {
+                        "@'
+$($strArg + [Environment]::Newline)'@" + [Environment]::NewLine
+                    } else {
+                        "'$strArg';"
+                    }
+                }
+            ))"
+            $myPowerShell = Get-Process -Id $pid | Select-Object -ExpandProperty Path
+            if ($myPowerShell -like '*_ise*') {
+                $myPowerShell = Get-Command powershell | Select-Object -ExpandProperty Path
+            }
+            Start-Process  -FilePath $myPowerShell -ArgumentList '-command', "Start-Process wt.exe -ArgumentList $EmbeddedArguments" -Verb Runas
+        } else {
+            Start-Process @startArgs wt.exe -ArgumentList $allArgs -PassThru:$PassThru
+        }
+
     }
 }
