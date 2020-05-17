@@ -192,9 +192,19 @@
 
             $wtPath = $wtProfile.Path
             $wtProfile.psobject.properties.Remove('Path')
-            $wtProfile |
-                ConvertTo-Json -Depth 100 |
-                Set-Content -LiteralPath $wtPath -Force -Encoding UTF8
+            $json = $wtProfile | ConvertTo-Json -Depth 100
+            $tries = 3
+            do {
+                try {
+                    [IO.File]::WriteAllText($wtPath, $JSON, [Text.Encoding]::UTF8)
+                    break
+                } catch {
+                    $tries--
+                    Write-Warning "$_ : $tries Left"
+                    [Threading.Thread]::Sleep(100)
+                }
+            } while ($tries)
+
         }
 
         if ($WhatIfPreference -or $PassThru) {
