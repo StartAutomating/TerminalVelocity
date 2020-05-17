@@ -25,6 +25,7 @@
             $DestinationPath = $profile |
                 Split-Path |
                 Join-Path -ChildPath "WindowsTerminal.$([DateTime]::Now.ToString('yyyy-MM-dd')).backup.json"
+            $null = New-Item -ItemType File -Path $DestinationPath -Force
         }
 
         $sourcePath =
