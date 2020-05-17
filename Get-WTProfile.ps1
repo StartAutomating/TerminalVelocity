@@ -64,7 +64,7 @@
     begin {
         #region Locate the Profile
         # We only need to find the profile once, so let's cache the filinfo in $script:WTProfilePath
-        if (-not $script:WTProfilePath) {  
+        if (-not $script:WTProfilePath) {
             $script:WTProfilePath =
                 if ($PSVersionTable.Platform -ne 'Windows' -and (Test-Path '/mnt')) {
                     Get-ChildItem '/mnt' |
@@ -88,7 +88,7 @@
         #region Declare Decorate Filter
         # A lot of this script boils down to "run this pipeline and change the PSTypenames"
         # so we'll declare a filter called decorate to save code.
-        filter decorate([string]$pstypename) {            
+        filter decorate([string]$pstypename) {
             $_.pstypenames.clear()
             $_.pstypenames.add($pstypename)
             $_
@@ -256,7 +256,7 @@ function ConvertFrom-Json
                     }
                 }
             }
-            Name { 
+            Name {
                 if (-not $ProfileName) { $ProfileName = '*' }
                 :nextProfile foreach ($wtProf in $wtProfile.profiles.list) {
                     foreach ($pn in $ProfileName) {
@@ -276,7 +276,7 @@ function ConvertFrom-Json
                 $defaultProf = $wtProfile.profiles.default
                 if ($defaultProf) {
                     $defaultProf | decorate 'WindowsTerminal.Profile'
-                }            
+                }
             }
             GlobalSettings { $wtProfile }
             Current {
