@@ -123,7 +123,7 @@
 
         if ($ColorScheme -and $PSCmdlet.ShouldProcess('Overwrite Color Schemes')) {
 
-            $wtProfile | Add-Member NoteProperty Schemes $ColorScheme -Force
+            $wtProfile | Add-Member NoteProperty schemes $ColorScheme -Force
             $changed = $true
         }
 
