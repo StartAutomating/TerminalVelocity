@@ -1,5 +1,19 @@
 ﻿function Remove-WTColorScheme
 {
+    <#
+    .Synopsis
+        Removes color schemes from Windows Terminal.
+    .Description
+        Removes registered color schemes from Windows Terminal.
+    .Example
+        Remove-WTColorScheme -Name "The Hulk"
+    .Link
+        Add-WTColorScheme
+    .Link
+        Get-WTColorScheme
+    .Link
+        Set-WTColorScheme
+    #>
     [CmdletBinding(SupportsShouldProcess,ConfirmImpact='Low')]
     param(
     # The name of the color scheme.
@@ -11,24 +25,21 @@
 
     process {
         #region Get Color Scheme
-        $PSBoundParameters.Remove('Confirm')
-        $PSBoundParameters.Remove('WhatIf')
-        $matchingSchemes = Get-WTColorScheme @PSBoundParameters           # call Get-WTProfile
-        $matchingSchemeNames = $matchingSchemes | 
-            Select-Object -ExpandProperty Name
+        $null = $PSBoundParameters.Remove('Confirm')
+        $null = $PSBoundParameters.Remove('WhatIf')
         $allSchemes = Get-WTProfile -ColorScheme *
-        $updatedSchemes = @($allSchemes | 
+        $updatedSchemes = @($allSchemes |
             Where-Object {
                 foreach ($cs in $ColorScheme) {
-                    if ($_.Name -like $cs) { return $false } 
+                    if ($_.Name -like $cs) { return $false }
                 }
                 return $true
             })
-        
-        Set-WTProfile -ColorScheme $updatedSchemes
+
+        if ($PSCmdlet.ShouldProcess("Remove $ColorScheme")) {
+            Set-WTProfile -ColorScheme $updatedSchemes -Confirm:$false
+        }
         #endregion Get Color Scheme
 
     }
-
-
 }
