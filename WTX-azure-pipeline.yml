@@ -1,4 +1,14 @@
 
+trigger: 
+  paths: 
+    exclude: 
+      - '*.md'
+      - '*.txt'
+      - '*.gif'
+      - '*.png'
+      - '*.jpg'
+      - '*.mp3'
+      - '*.mp4'
 stages: 
   - stage: PowerShellStaticAnalysis
     displayName: Static Analysis
