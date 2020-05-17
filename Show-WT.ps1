@@ -64,6 +64,22 @@
     [int]
     $LoopCount = 1,
 
+    <#
+    When useAcrylic is set to true, it sets the transparency of the window for the profile.
+    Accepts floating point values from 0-1 (default 0.5).
+    #>
+    [Parameter(ParameterSetName='ImageFile',ValueFromPipelineByPropertyName)]
+    [float]
+    $AcrylicOpacity,
+
+    <#
+    When set to true, the window will have an acrylic background.
+    When set to false, the window will have a plain, untextured background.
+    #>
+    [Parameter(ValueFromPipelineByPropertyName)]
+    [switch]
+    $UseAcrylic,
+
     # If set, will run in a background job.
     [switch]
     $AsJob
@@ -105,15 +121,59 @@ $($MyInvocation.MyCommand.Name) @parameters
             }
             $img.Dispose()
         }
-
+        $accumulateArgs = [Collections.Generic.List[Collections.IDictionary]]::new()
     }
+
+
     process {
-        if ($PSCmdlet.ParameterSetName -eq 'ImageFile') {
+        $accumulateArgs.Add((@{} + $PSBoundParameters))
+    }
+    end {
+        foreach ($acc in $accumulateArgs) {
+            foreach ($kv in $acc.GetEnumerator()) {
+                $ExecutionContext.SessionState.PSVariable.Set($kv.Key, $kv.Value)
+            }
+            if ($PSCmdlet.ParameterSetName -eq 'ImageFile') {
+
+
+
+            if (-not $targetProfile) {
+                $targetProfile =
+                    if (-not $ProfileName) {
+                        Get-WTProfile -Current
+                    } else {
+                        Get-WTProfile -ProfileName $ProfileName
+                    }
+            }
+
+            if (-not $targetProfile) {
+                $targetProfile = Get-WTProfile -Default
+            }
+
+            if (-not $targetProfile) {
+                Write-Error "No target profile - WT_PROFILE_ID '$env:WT_PROFILE_ID'"
+                return
+            }
+
+            $imageFileUri = $imagePath -as [uri]
+            if ($imageFileUri.Authority) {
+                $imageDest =
+                    if ($PSVersionTable.OS -and $PSVersionTable.OS -notlike '*windows*') {
+                        Join-Path "/home/$($env:USER)/Pictures" $imageFileUri.Segments[-1]
+                    } else {
+                        Join-Path "$home\Pictures" $imageFileUri.Segments[-1]
+                    }
+                $newFile = New-Item -ItemType File -Path $imageDest -Force
+                [Net.Webclient]::new().DownloadFile($imageFileUri, $newFile.FullName)
+                $imagePath = $newFile.FullName
+            }
             $resolvedPath = $ExecutionContext.SessionState.Path.GetResolvedPSPathFromPSPath($ImagePath)
             if (-not $resolvedPath) { return }
 
+
             $myParameters = @{} + $PSBoundParameters
             $resolvedPath = Get-Item -LiteralPath $resolvedPath | Select-Object -ExpandProperty Fullname
+
             $myParameters['ImagePath'] = "$resolvedPath"
             if (-not $ProfileName -and $ENV:WT_PROFILE_ID) {
                 $ProfileName = $myParameters['ProfileName'] = $ENV:WT_PROFILE_ID
@@ -125,62 +185,71 @@ $($MyInvocation.MyCommand.Name) @parameters
             }
 
 
-            $targetProfile =
-                if (-not $ProfileName) {
-                    Get-WTProfile -Current
+
+
+            $wasUsingAcrylic = ($targetProfile.useAcrylic -as [bool])
+            $oldAcrylicOpacity = ($targetProfile.acrylicOpacity -as [float])
+            $realPath =
+                if ($resolvedPath -like '/mnt/*') { # If we're trying to show an image with a mounted path
+                    $resolvedPath -replace '/mnt/(?<Letter>[a-z])', '${Letter}:\' -replace '/', '\'
+                } elseif ($PSVersionTable.OS -and
+                    $PSVersionTable.OS -notlike '*Windows*' -and $env:WSL_DISTRO_NAME) {
+                    "\\wsl$\$($env:WSL_DISTRO_NAME)\" + ($resolvedPath -replace '/','\')
                 } else {
-                    Get-WTProfile -ProfileName $ProfileName
+                    $resolvedPath
                 }
 
-            if (-not $targetProfile) {
-                $targetProfile = Get-WTProfile -Default
-            }
 
-
-            if (-not $targetProfile) {
-                "No target profile - $env:WT_PROFILE_ID" | Out-Host
-            }
-
-            
             $updatedProfile = $targetProfile |
-                Add-Member backgroundImage "$resolvedPath" -Force -PassThru |
+                Add-Member backgroundImage "$realPath" -Force -PassThru |
                 Add-Member backgroundImageOpacity $Opacity -Force -PassThru |
                 Add-Member backgroundImageAlignment $Alignment -Force -PassThru |
-                Add-Member backgroundImageStrechMode $StretchMode -Force -PassThru |
-                Add-Member useAcrylic $true -Force -PassThru
+                Add-Member backgroundImageStrechMode $StretchMode -Force -PassThru
+
+            if ($AcrylicOpacity) {
+                $updatedProfile = $updatedProfile |
+                    Add-Member acrylicOpacity $AcrylicOpacity -Force -PassThru
+            }
 
             if ($targetProfile.guid) {
                 Set-WTProfile -ProfileName $targetProfile.guid -Confirm:$false -InputObject $updatedProfile
             } else {
-                Set-WTProfile -Default -Confirm:$false -InputObject $updatedProfile 
+                Set-WTProfile -Default -Confirm:$false -InputObject $updatedProfile
             }
 
             if (-not $PSBoundParameters['Wait'] -and $ImagePath -like '*.gif') {
-                $Wait = & $getGifLength $resolvedPath
+                $Wait = try {
+                    & $getGifLength $resolvedPath
+                } catch {
+                    [Timespan]::FromSeconds(2.5 * (Get-Item -LiteralPath $resolvedPath).Length /1mb)
+                }
             }
             if ($LoopCount -ne 1) {
                 $wait = [Timespan]::FromMilliseconds((& $getGifLength $resolvedPath).TotalMilliseconds * $LoopCount)
-            } 
+            }
             if ($Wait.TotalMilliseconds -ge 0) {
                 [Threading.Thread]::Sleep($Wait.TotalMilliseconds)
-
-                $blankImageFields = [PSCustomObject]@{
-                    backgroundImage =''
-                    backgroundImageOpacity = ''
-                    backgroundImageAlignment = ''
-                    backgroundImageStretchMode = ''
-                    useAcrylic = $false
+                if ($acc -eq $accumulateArgs[-1]) {
+                    $blankImageFields = [PSCustomObject]@{
+                        backgroundImage =''
+                        backgroundImageOpacity = ''
+                        backgroundImageAlignment = ''
+                        backgroundImageStretchMode = ''
+                        useAcrylic = $wasUsingAcrylic
+                        acrylicOpacity = $oldAcrylicOpacity
+                    }
+                    if ($targetProfile.guid) {
+                        $blankImageFields |
+                            Set-WTProfile -ProfileName $targetProfile.guid -Confirm:$false
+                    } else {
+                        $blankImageFields |
+                            Set-WTProfile -Default -Confirm:$false
+                    }
                 }
-                if ($targetProfile.guid) {
-                    $blankImageFields |
-                        Set-WTProfile -ProfileName $targetProfile.guid -Confirm:$false
-                } else {
-                    $blankImageFields |
-                        Set-WTProfile -Default -Confirm:$false
-                }
 
-                
+
             }
+        }
         }
     }
 }
