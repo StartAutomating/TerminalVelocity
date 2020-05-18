@@ -1,5 +1,5 @@
 ﻿@{
-    ModuleVersion='0.1'
+    ModuleVersion='0.2'
     RootModule='WTX.psm1'
     GUID = '4dbcc223-a65a-4970-ac98-a24e95cec9a8'
     Author = 'James Brundage'
@@ -10,6 +10,29 @@
             Tags = 'WindowsTerminal','WTX'
             ProjectURI = 'https://github.com/StartAutomating/WTX'
             LicenseURI = 'https://github.com/StartAutomating/WTX/blob/master/LICENSE'
+            ReleaseNotes = @'
+0.2
+---
+### New Commands:
+* Backup/Restore-WTProfile
+* Remove-WTColorScheme
+
+### New Formatting:
+* Color Schemes can now be previewed.
+
+### Improved Commands:
+* Show-WT:
+** Can now show from a URI
+** Can now show from within WSL instance
+* Start-WT can now run -Elevated
+
+### Reliability improvements:
+* Set-WTProfile and Set-WTColorScheme now try up to three times
+* Show-WT now only clears the last image in a sequence, for improved perf and experience
+
+### Assetation:
+* Included demo of color scheme preview
+'@
         }
     }
     FormatsToProcess = 'WTX.format.ps1xml'
