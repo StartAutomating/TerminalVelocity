@@ -17,7 +17,7 @@ Add-WTColorScheme -Name AdventureTime
 
 #### Changing the color scheme
 ~~~
-Set-WTColorScheme -Name AdventureTime # The profile is automatically detected.
+Set-WTColorScheme -Name AdventureTime -Passthru # The profile is automatically detected.
 ~~~
 
 
@@ -32,3 +32,10 @@ Start-WT -ProfileName PowerShell -CommandLine 'powershell -nologo -noexit -comma
 # The .gif will play once and then dissapear.
 Show-WT -ImagePath $home\Picture\Gif\Whoa.gif 
 ~~~
+
+
+#### Preview color schemes
+~~~
+Get-WTColorScheme AdventureTime # This is formatted by PowerShell to show a preview. 
+~~~
+![Previwing Scheme 'AdventureTime'](Assets/Get-WTColorScheme.png)
