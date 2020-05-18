@@ -19,14 +19,14 @@
     param(
     # If provided, changes the launch mode.
     # Valid launch modes are 'Maximized' and 'Default'.
-    [Parameter(ParameterSetName='Global',ValueFromPipelineByPropertyName)]
+    [Parameter(ParameterSetName='Global')]
     [ValidateSet('Maximized','Default')]
     [string]
     $LaunchMode,
 
     # If provided, changes the tab width mode.
     # Valid modes are 'Equal' and 'TitleLength'.
-    [Parameter(ParameterSetName='Global',ValueFromPipelineByPropertyName)]
+    [Parameter(ParameterSetName='Global')]
     [ValidateSet('Equal','TitleLength')]
     [string]
     $TabWidthMode,
@@ -34,21 +34,21 @@
     # When set to true, tabs are always displayed.
     # When set to false and showTabsInTitlebar is set to false,
     # tabs only appear after opening a new tab.
-    [Parameter(ParameterSetName='Global',ValueFromPipelineByPropertyName)]
+    [Parameter(ParameterSetName='Global')]
     [Alias('AlwaysShowTabs')]
     [switch]
     $AlwaysShowTab,
 
     # When set to true, a selection is immediately copied to your clipboard upon creation.
     # When set to false, the selection persists and awaits further action.
-    [Parameter(ParameterSetName='Global',ValueFromPipelineByPropertyName)]
+    [Parameter(ParameterSetName='Global')]
     [Alias('QuickEdit')]
     [switch]
     $CopyOnSelect,
 
     # When set to true closing a window with multiple tabs open WILL require confirmation.
     # When set to false closing a window with multiple tabs open WILL NOT require confirmation.
-    [Parameter(ParameterSetName='Global',ValueFromPipelineByPropertyName)]
+    [Parameter(ParameterSetName='Global')]
     [switch]
     $ConfirmCloseAllTabs,
 
@@ -59,7 +59,7 @@
     $InputObject,
 
     # The name or ID of the tab profile.  This is used to determine which profiles are changed by the -InputObject.
-    [Parameter(Mandatory,ParameterSetName='InputObject',ValueFromPipelineByPropertyName)]
+    [Parameter(ParameterSetName='InputObject',ValueFromPipelineByPropertyName)]
     [Alias('GUID')]
     [string]
     $ProfileName,
@@ -128,6 +128,10 @@
         }
 
         #region Profile Specific Settings
+        if ($InputObject -and -not $ProfileName -and $ENV:WT_PROFILE_ID) {
+            $ProfileName = $ENV:WT_PROFILE_ID
+        }
+
         if ($InputObject -and ($ProfileName -or $Default)) {
             $targetProfiles =
                 if ($Default) {
