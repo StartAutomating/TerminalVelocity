@@ -1,27 +1,30 @@
 ﻿
-WTX [0.1]
+WTX [0.2]
 =========
 
 Windows Terminal Extras | Optimize-WindowsTerminal -with PowerShell
 ---------
 
 ### Commands
------------------------
-|  Verb|Noun          |
-|-----:|:-------------|
-|   Add|-WTColorScheme|
-|      |-WTProfile    |
-|   Get|-WTColorScheme|
-|      |-WTProfile    |
-|   New|-WTColorScheme|
-|      |-WTProfile    |
-|Remove|-WTProfile    |
-|   Set|-WTColorScheme|
-|      |-WTProfile    |
-|  Show|-WT           |
-| Start|-WT           |
-|  Stop|-WT           |
------------------------
+------------------------
+|   Verb|Noun          |
+|------:|:-------------|
+|    Add|-WTColorScheme|
+|       |-WTProfile    |
+| Backup|-WTProfile    |
+|    Get|-WTColorScheme|
+|       |-WTProfile    |
+|    New|-WTColorScheme|
+|       |-WTProfile    |
+| Remove|-WTColorScheme|
+|       |-WTProfile    |
+|Restore|-WTProfile    |
+|    Set|-WTColorScheme|
+|       |-WTProfile    |
+|   Show|-WT           |
+|  Start|-WT           |
+|   Stop|-WT           |
+------------------------
 ### WTX is a PowerShell module that lets you customize Windows Terminal.
 
 
@@ -41,7 +44,7 @@ Add-WTColorScheme -Name AdventureTime
 
 #### Changing the color scheme
 ~~~
-Set-WTColorScheme -Name AdventureTime # The profile is automatically detected.
+Set-WTColorScheme -Name AdventureTime -Passthru # The profile is automatically detected.
 ~~~
 
 
@@ -50,13 +53,22 @@ Set-WTColorScheme -Name AdventureTime # The profile is automatically detected.
 Start-WT -ProfileName PowerShell -CommandLine 'powershell -nologo -noexit -command $psVersionTable'
 ~~~
 
+~~~
+Start-WT -Elevated # Start Windows Terminal Elevated
+~~~
+
 #### Flashing an image in Terminal
 ~~~
 # The profile is automatically detected
 # The .gif will play once and then dissapear.
-Show-WT -ImagePath $home\Picture\Gif\Whoa.gif 
+Show-WT -ImagePath $home\Pictures\Gif\Whoa.gif 
 ~~~
 
 
+#### Preview color schemes
+~~~
+Get-WTColorScheme AdventureTime # This is formatted by PowerShell to show a preview. 
+~~~
+![Previwing Scheme 'AdventureTime'](Assets/Get-WTColorScheme.png)
 
 
