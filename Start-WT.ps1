@@ -94,17 +94,21 @@
             #region New Tabs and Panes
             if ($CommandLine -or $ProfileName -or $WorkingDirectory) {
                 if ($Split -or $SplitDirection) {
-                    $(if ($wtArgs.Count) {';'} else {''}) + $(
-                        if ($Split) {
-                            'split-pane'
-                        } elseif ('Horizontal','H' -contains $SplitDirection) {
-                            'split-pane -H'
-                        } elseif ('Vertical','V' -contains $SplitDirection) {
-                            'split-pane -V'
+                    $(if ($allArgs.Count) {';'} else {''}) + $(
+                        if ($allArgs.Count) {        
+                            if ($Split) {
+                                'split-pane'
+                            } elseif ('Horizontal','H' -contains $SplitDirection) {
+                                'split-pane -H'
+                            } elseif ('Vertical','V' -contains $SplitDirection) {
+                                'split-pane -V'
+                            }
+                        } else {
+                            'new-tab'
                         }
                     )
                 } else {
-                    $(if ($wtArgs.Count) {';'} else {''}) + 'new-tab'
+                    $(if ($allArgs.Count) {';'} else {''}) + 'new-tab'
                 }
                 if ($ProfileName) {
                     '--profile'
