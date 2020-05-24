@@ -204,7 +204,10 @@ $($MyInvocation.MyCommand.Name) @parameters
                 Add-Member backgroundImage "$realPath" -Force -PassThru |
                 Add-Member backgroundImageOpacity $Opacity -Force -PassThru |
                 Add-Member backgroundImageAlignment $Alignment -Force -PassThru |
-                Add-Member backgroundImageStrechMode $StretchMode -Force -PassThru
+                Add-Member backgroundImageStrechMode $StretchMode -Force -PassThru |
+                Add-Member useAcrylic ([bool]$UseAcrylic) -Force -PassThru
+
+            
 
             if ($AcrylicOpacity) {
                 $updatedProfile = $updatedProfile |
@@ -228,7 +231,7 @@ $($MyInvocation.MyCommand.Name) @parameters
                 $wait = [Timespan]::FromMilliseconds((& $getGifLength $resolvedPath).TotalMilliseconds * $LoopCount)
             }
             if ($Wait.TotalMilliseconds -ge 0) {
-                [Threading.Thread]::Sleep($Wait.TotalMilliseconds)
+                Start-Sleep -milliseconds $Wait.TotalMilliseconds
                 if ($acc -eq $accumulateArgs[-1]) {
                     $blankImageFields = [PSCustomObject]@{
                         backgroundImage =''
