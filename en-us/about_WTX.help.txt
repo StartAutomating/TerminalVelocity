@@ -4,14 +4,14 @@
 #### Installing WTX
 
 WTX is on the PowerShell Gallery.  To Install WTX, run:
-~~~
+~~~PowerShell
 Install-Module WTX -Scope CurrentUser
 ~~~
 
 Once you've installed WTX, here are a few handy things you can do with WTX:
 
 #### Adding a new Profile
-~~~
+~~~PowerShell
 Add-WTProfile -Name kali-linux-pwsh -CommandLine 'wsl -d kali-linux -e pwsh'
 ~~~
 
