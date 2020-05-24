@@ -137,16 +137,16 @@
         if ($Current) {
             if ($ENV:WT_PROFILE_ID) {
                 $ProfileName = $ENV:WT_PROFILE_ID
-            } 
+            }
             else {
                 Write-Error '$ENV:WT_PROFILE_ID not found'
                 return
             }
         }
-        
+
         if ($InputObject -and -not $ProfileName -and $ENV:WT_PROFILE_ID) {
             $ProfileName = $ENV:WT_PROFILE_ID
-        }        
+        }
 
         if ($InputObject -and ($ProfileName -or $Default)) {
             $targetProfiles =

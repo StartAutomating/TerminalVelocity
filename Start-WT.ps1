@@ -95,7 +95,7 @@
             if ($CommandLine -or $ProfileName -or $WorkingDirectory) {
                 if ($Split -or $SplitDirection) {
                     $(if ($allArgs.Count) {';'} else {''}) + $(
-                        if ($allArgs.Count) {        
+                        if ($allArgs.Count) {
                             if ($Split) {
                                 'split-pane'
                             } elseif ('Horizontal','H' -contains $SplitDirection) {

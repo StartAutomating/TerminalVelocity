@@ -207,7 +207,7 @@ $($MyInvocation.MyCommand.Name) @parameters
                 Add-Member backgroundImageStrechMode $StretchMode -Force -PassThru |
                 Add-Member useAcrylic ([bool]$UseAcrylic) -Force -PassThru
 
-            
+
 
             if ($AcrylicOpacity) {
                 $updatedProfile = $updatedProfile |
