@@ -266,13 +266,13 @@
         $wtProfile = Get-WTProfile -Global          # Get our profile
         $wtProfile.profiles |                       # Add out new profile to the list,
             Add-Member NoteProperty list @(
-                $newProfile
                 foreach ($_ in $wtProfile.profiles.list) {
                     if ($guid -ne $_.Guid -and $name -ne $_.Name)          # and don't forget all of the other ones.
                     {
                         $_
                     }
                 }
+                $newProfile
             ) -Force
         $wtPath = $wtProfile.Path
         if ($PSCmdlet.ShouldProcess("Add Profile $Name to $wtPath")) # If we ShouldProcess

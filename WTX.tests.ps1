@@ -175,7 +175,7 @@ describe WTX {
         }
 
         it 'Can backup a profile' {
-            Backup-WTProfile 
+            Backup-WTProfile
         }
 
         it 'Can remove a profile' {
@@ -207,7 +207,7 @@ describe WTX {
         }
     }
 
-    
+
 }
 
 Remove-Item $wtSettingsPath

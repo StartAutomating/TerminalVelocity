@@ -55,6 +55,7 @@
     # The InputObject.  This is used to provide information to a specific tab profile.
     [Parameter(ValueFromPipeline,ParameterSetName='InputObject')]
     [Parameter(ValueFromPipeline,ParameterSetName='Default')]
+    [Parameter(ValueFromPipeline,ParameterSetName='Current')]
     [PSObject]
     $InputObject,
 
@@ -69,6 +70,11 @@
     [Alias('Defaults')]
     [switch]
     $Default,
+
+    # If set, will set the current profile (based off of ENV:WT_PROFILE_ID).
+    [Parameter(Mandatory,ParameterSetName='Current')]
+    [switch]
+    $Current,
 
     # Properties are specific to each color scheme.
     # ColorTool is a great tool you can use to create and explore new color schemes.
@@ -128,6 +134,16 @@
         }
 
         #region Profile Specific Settings
+        if ($Current) {
+            if ($ENV:WT_PROFILE_ID) {
+                $ProfileName = $ENV:WT_PROFILE_ID
+            }
+            else {
+                Write-Error '$ENV:WT_PROFILE_ID not found'
+                return
+            }
+        }
+
         if ($InputObject -and -not $ProfileName -and $ENV:WT_PROFILE_ID) {
             $ProfileName = $ENV:WT_PROFILE_ID
         }
