@@ -1,5 +1,5 @@
 ﻿@{
-    ModuleVersion='0.2'
+    ModuleVersion='0.3'
     RootModule='WTX.psm1'
     GUID = '4dbcc223-a65a-4970-ac98-a24e95cec9a8'
     Author = 'James Brundage'
@@ -11,6 +11,15 @@
             ProjectURI = 'https://github.com/StartAutomating/WTX'
             LicenseURI = 'https://github.com/StartAutomating/WTX/blob/master/LICENSE'
             ReleaseNotes = @'
+0.3
+---
+### New Commands:
+* Clear-WTColorScheme 
+### Bugfixes
+* Show-WT now honors -UseAcrylic
+* Set-WTProfile -Current clarifies the current profile.
+* Add-WTProfile will now add profiles to the end.
+* Start-WT now handles -Split and multiple sequences effectively.
 0.2
 ---
 ### New Commands:
