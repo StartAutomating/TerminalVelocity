@@ -1,5 +1,5 @@
 ﻿
-WTX [0.2]
+WTX [0.3]
 =========
 
 Windows Terminal Extras | Optimize-WindowsTerminal -with PowerShell
@@ -12,8 +12,10 @@ Windows Terminal Extras | Optimize-WindowsTerminal -with PowerShell
 |    Add|-WTColorScheme|
 |       |-WTProfile    |
 | Backup|-WTProfile    |
+|  Clear|-WTColorScheme|
 |    Get|-WTColorScheme|
 |       |-WTProfile    |
+| Import|-WTX          |
 |    New|-WTColorScheme|
 |       |-WTProfile    |
 | Remove|-WTColorScheme|
@@ -77,5 +79,3 @@ Show-WT -ImagePath $home\Pictures\Gif\Whoa.gif
 Get-WTColorScheme AdventureTime # This is formatted by PowerShell to show a preview. 
 ~~~
 ![Previwing Scheme 'AdventureTime'](Assets/Get-WTColorScheme.png)
-
-

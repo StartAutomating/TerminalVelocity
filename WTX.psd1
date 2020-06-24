@@ -14,7 +14,7 @@
 0.3
 ---
 ### New Commands:
-* Clear-WTColorScheme 
+* Clear-WTColorScheme
 ### Bugfixes
 * Show-WT now honors -UseAcrylic
 * Set-WTProfile -Current clarifies the current profile.
