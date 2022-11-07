@@ -196,6 +196,7 @@
             $wtProfile |                                 # turn the profile
                 ConvertTo-Json -Depth 100 |              # back into JSON
                 Set-Content -Path $wtPath -Encoding UTF8 # and write it to disk.
+            $wtProfile.psobject.properties.add([PSNoteProperty]::new('Path', $wtPath))
         }
         elseif ($WhatIfPreference) # if we wanted to know -WhatIf
         {
