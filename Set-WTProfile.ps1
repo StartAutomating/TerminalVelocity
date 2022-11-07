@@ -37,6 +37,10 @@ function Set-WTProfile {
     [Parameter(Mandatory,ParameterSetName='Current')]
     [switch]
     $Current,
+# If set, changes will apply to the global profile.
+    [Parameter(Mandatory,ParameterSetName='Global')]
+    [switch]
+    $Global,
 # Properties are specific to each color scheme.
     # ColorTool is a great tool you can use to create and explore new color schemes.
     # All colors use hex color format.
