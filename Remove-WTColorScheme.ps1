@@ -27,7 +27,7 @@
         #region Get Color Scheme
         $null = $PSBoundParameters.Remove('Confirm')
         $null = $PSBoundParameters.Remove('WhatIf')
-        $allSchemes = Get-WTProfile -ColorScheme *
+        $allSchemes = Get-WTProfile -ColorScheme * -Global
         $updatedSchemes = @($allSchemes |
             Where-Object {
                 foreach ($cs in $ColorScheme) {
@@ -37,7 +37,7 @@
             })
 
         if ($PSCmdlet.ShouldProcess("Remove $ColorScheme")) {
-            Set-WTProfile -ColorScheme $updatedSchemes -Confirm:$false
+            Set-WTProfile -ColorScheme $updatedSchemes -Confirm:$false -Global
         }
         #endregion Get Color Scheme
 
