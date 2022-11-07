@@ -58,7 +58,12 @@
     [Parameter(Mandatory,ParameterSetName='KeyBinding',ValueFromPipelineByPropertyName)]
     [Alias('Keys','KeyBindings')]
     [switch]
-    $KeyBinding
+    $KeyBinding,
+
+    # If set, will force reloading of profile information.
+    # By default, the profile object will be cached to improve performance.
+    [switch]
+    $Force
     )
 
     begin {
@@ -237,13 +242,19 @@ function ConvertFrom-Json
             $guid = $_.Guid
         }
 
-        $wtProfile =
-            [IO.File]::ReadAllText($script:WTProfilePath.FullName) | # Read the profile
-                ConvertFrom-Json                                   | # convert it from JSON
-                    decorate WindowsTerminal.Settings              | # decorate it as a 'WindowsTerminal.Settings'
-                                                                     # and keep the path
-                        Add-Member NoteProperty Path $script:WTProfilePath.FullName -Force -PassThru
+        if ($Force) { $script:cachedWTProfile = $null }
+        if (-not $script:cachedWTProfile) {
+            $script:cachedWTProfile = $wtProfile =
+                [IO.File]::ReadAllText($script:WTProfilePath.FullName) | # Read the profile
+                    ConvertFrom-Json                                   | # convert it from JSON
+                        decorate WindowsTerminal.Settings              | # decorate it as a 'WindowsTerminal.Settings'
+                                                                        # and keep the path
+                            Add-Member NoteProperty Path $script:WTProfilePath.FullName -Force -PassThru
+        } else {
+            $wtProfile = $script:cachedWTProfile
+        }
 
+        
 
         switch ($paramSet) {
             ColorScheme {
