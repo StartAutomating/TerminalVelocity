@@ -1,4 +1,4 @@
-﻿<div align='center'>
+<div align='center'>
 <img src='Assets/TerminalVelocity.svg' />
 </div>
 
@@ -52,3 +52,4 @@ Show-WT -ImagePath $home\Pictures\Gif\Whoa.gif
 Get-WTColorScheme AdventureTime # This is formatted by PowerShell to show a preview. 
 ~~~
 ![Previwing Scheme 'AdventureTime'](Assets/Get-WTColorScheme.png)
+
