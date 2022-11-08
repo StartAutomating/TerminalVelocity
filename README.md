@@ -1,43 +1,12 @@
 ﻿
-WTX [0.3]
-=========
+#### Installing
 
-Windows Terminal Extras | Optimize-WindowsTerminal -with PowerShell
----------
-
-### Commands
-------------------------
-|   Verb|Noun          |
-|------:|:-------------|
-|    Add|-WTColorScheme|
-|       |-WTProfile    |
-| Backup|-WTProfile    |
-|  Clear|-WTColorScheme|
-|    Get|-WTColorScheme|
-|       |-WTProfile    |
-| Import|-WTX          |
-|    New|-WTColorScheme|
-|       |-WTProfile    |
-| Remove|-WTColorScheme|
-|       |-WTProfile    |
-|Restore|-WTProfile    |
-|    Set|-WTColorScheme|
-|       |-WTProfile    |
-|   Show|-WT           |
-|  Start|-WT           |
-|   Stop|-WT           |
-------------------------
-### WTX is a PowerShell module that lets you customize Windows Terminal.
-
-
-#### Installing WTX
-
-WTX is on the PowerShell Gallery.  To Install WTX, run:
+TerminalVelocity is on the PowerShell Gallery.  To Install TerminalVelocity, run:
 ~~~PowerShell
-Install-Module WTX -Scope CurrentUser
+Install-Module TerminalVelocity -Scope CurrentUser
 ~~~
 
-Once you've installed WTX, here are a few handy things you can do with WTX:
+Once you've installed TerminalVelocity, here are a few handy things you can do with TerminalVelocity:
 
 #### Adding a new Profile
 ~~~PowerShell
