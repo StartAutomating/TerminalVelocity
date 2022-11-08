@@ -1,4 +1,8 @@
-﻿
+﻿<div align='center'>
+<img src='Assets/TerminalVelocity.svg' />
+</div>
+
+
 #### Installing
 
 TerminalVelocity is on the PowerShell Gallery.  To Install TerminalVelocity, run:
