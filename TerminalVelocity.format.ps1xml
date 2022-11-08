@@ -1,44 +1,209 @@
-﻿<?xml version="1.0" encoding="utf-16"?>
-<!-- Generated with EZOut 1.8.2: Install-Module EZOut or https://github.com/StartAutomating/EZOut -->
+<?xml version="1.0" encoding="utf-16"?>
+<!-- Generated with EZOut 1.9.7: Install-Module EZOut or https://github.com/StartAutomating/EZOut -->
 <Configuration>
-  <Controls>
-    <Control>
-      <Name>WindowsTerminalProfileControl</Name>
+  <ViewDefinitions>
+    <View>
+      <Name>WindowsTerminal.ColorScheme</Name>
+      <ViewSelectedBy>
+        <TypeName>WindowsTerminal.ColorScheme</TypeName>
+      </ViewSelectedBy>
       <CustomControl>
         <CustomEntries>
           <CustomEntry>
             <CustomItem>
               <ExpressionBinding>
-                <ScriptBlock>
+                <ItemSelectionCondition>
+                  <ScriptBlock> $host.UI.SupportsVirtualTerminal </ScriptBlock>
+                </ItemSelectionCondition>
+                <ScriptBlock>$moduleName = 'TerminalVelocity'
+
+            do {
+                $lm = Get-Module -Name $moduleName -ErrorAction Ignore
+                if (-not $lm) { continue } 
+                if ($lm.FormatPartsLoaded) { break }
+                $wholeScript = @(foreach ($formatFilePath in $lm.exportedFormatFiles) {         
+                    foreach ($partNodeName in Select-Xml -LiteralPath $formatFilePath -XPath "/Configuration/Controls/Control/Name[starts-with(., '$')]") {
+                        $ParentNode = $partNodeName.Node.ParentNode
+                        "$($ParentNode.Name)={
+            $($ParentNode.CustomControl.CustomEntries.CustomEntry.CustomItem.ExpressionBinding.ScriptBlock)}"
+                    }
+                }) -join [Environment]::NewLine
+                New-Module -Name "${ModuleName}.format.ps1xml" -ScriptBlock ([ScriptBlock]::Create(($wholeScript + ';Export-ModuleMember -Variable *'))) |
+                    Import-Module -Global
+                $onRemove = [ScriptBlock]::Create("Remove-Module '${ModuleName}.format.ps1xml'")
+                
+                if (-not $lm.OnRemove) {
+                    $lm.OnRemove = $onRemove
+                } else {
+                    $lm.OnRemove = [ScriptBlock]::Create($onRemove.ToString() + ''  + [Environment]::NewLine + $lm.OnRemove)
+                }
+                $lm | Add-Member NoteProperty FormatPartsLoaded $true -Force
+            
+            } while ($false)
+            
+        
+
+$colorScheme = $_
+$bufferWidth = $host.UI.RawUI.BufferSize.Width
+
+if ($bufferWidth -lt 110){
+@(
+$colorScheme = $_
+. ${TerminalVelocity_setOutputStyle} -Foreground $colorScheme.foreground -Background $colorScheme.background
+$colorScheme.name
+. ${TerminalVelocity_clearOutputStyle} 
+) -join ''
+return
+} 
+
+@(
     @(
-    $wtProf = $_ 
 
 
-    if ($wtProf.Guid) {
-        $wtCoreProps = 'Name','CommandLine','GUID', 'Source'
+    $bgColors = 'Background','Black','Red','Green', 'Yellow', 'Blue', 'Purple','Cyan','White'
+    $bgColorWidth = $host.UI.RawUI.BufferSize.Width / ($bgColors.Length + 1)
+     
+    $bigEnoughForColors =$host.UI.RawUI.BufferSize.Width -ge 124
 
-        $wtProf | 
-            Select-Object $wtCoreProps | 
-            Format-Table -HideTableHeaders -AutoSize |
-            Out-String  
+    
 
-        $wtOther = $wtProf | 
-            Select-Object -Property * -ExcludeProperty $wtCoreProps
+    $headerLine = 
+    @(for ($n =0; $n -lt $bgColors.Length; $n++) {
+        $colWidth = 
+            if ($n -eq 0) {
+                14
+            } elseif ($n -eq 1) {
+                9
+            } else {
+                $bgColorWidth
+            }
 
-        if (@($wtOther.psobject.properties).Length -ge 1) {
-            $wtOther | Format-List | Out-String
+        $space = [Math]::Max(0, $colWidth - $bgColors[$n].Length)
+        "$(' ' * [Math]::Ceiling($space /2))$($bgColors[$n])$(' ' * [Math]::Floor($space /2))|"
+
+    }) -join ''
+
+
+(. ${TerminalVelocity_setOutputStyle} -Background $colorScheme.background -foreground $colorScheme.foreground) + 
+    "$('---' + $colorScheme.Name + ('-' * ($headerLine.Length - 4 - $colorScheme.Name.Length)) + '|')" + 
+    ( &amp; ${TerminalVelocity_clearOutputStyle})
+
+#. $setOutputStyle -Foreground $colorScheme.Foreground -Background $colorScheme.Background
+(. ${TerminalVelocity_setOutputStyle} -Background $colorScheme.background -foreground $colorScheme.foreground) + $headerLine + ( &amp; ${TerminalVelocity_clearOutputStyle})
+foreach ($fg in 'Foreground','BrightWhite','Black','BrightBlack',
+    'Red', 'BrightRed','Green','BrightGreen','Yellow','BrightYellow',
+    'Blue','BrightBlue','Purple','BrightPurple', 'Cyan', 'BrightCyan','White','BrightWhite') {
+    $line = ''# . $setOutputStyle -Foreground $colorScheme.($fg)
+    
+    $line += @(
+    $n = 0
+    
+    foreach ($bg in $bgColors) {
+        $bgColor = $colorScheme.$bg
+
+        &amp; ${TerminalVelocity_setOutputStyle} -Background $colorScheme.$bg
+        $t = if ($n -eq 0) {
+            $fg
+            $colWidth = 14
+        } elseif ($n -eq 1) {
+            "$($colorScheme.$fg)"
+            $colWidth = 9
+        } else {
+            if ($bigEnoughForColors) {
+                "$($colorScheme.$fg)"
+            } else {
+                "E.g"
+            }
+            $colWidth = $bgColorWidth
         }
+        $space = [Math]::Max(0, $colWidth - $t.Length)
+        if ($n -gt 0) {
+            &amp; ${TerminalVelocity_setOutputStyle} -Foreground $colorScheme.$fg -Background $bgColor
+        } else {
+            &amp; ${TerminalVelocity_setOutputStyle} -Foreground $colorScheme.Foreground -Background $bgColor
+        }
+        "$(' ' * [Math]::Floor($space /2))$t$(' ' * [Math]::Ceiling($space /2))"
+
+        
+        &amp; ${TerminalVelocity_setOutputStyle} -Foreground $colorScheme.foreground -Background $colorScheme.background
+        "|"
+        &amp; ${TerminalVelocity_clearOutputStyle}
+        $n++
     }
     ) -join ''
+    $line.Trim() + ( &amp; ${TerminalVelocity_clearOutputStyle})
+    #"$($fg)".PadRight($host.UI.RawUI.BufferSize.Width)
+}
+) -join [Environment]::NewLine
+&lt;#
+@(
+foreach ($fg in $colorScheme.psobject.properties) {
+    if ($fg.Name -eq 'Name') { continue}
+    . $setOutputStyle -Foreground $colorScheme.($fg.Name)
+    "$($fg.Name)".PadRight($host.UI.RawUI.BufferSize.Width)
+}
+)
+#&gt;
+. ${TerminalVelocity_clearOutputStyle}
+) -join ''
+return
+
+
+
+
+
+</ScriptBlock>
+              </ExpressionBinding>
+              <ExpressionBinding>
+                <ItemSelectionCondition>
+                  <ScriptBlock> -not $Host.ui.SupportsVirtualTerminal </ScriptBlock>
+                </ItemSelectionCondition>
+                <ScriptBlock>
+    $_.Name + ([Environment]::NewLine * 2) + ($_ | Select-Object -Property * -ExcludeProperty Name | Format-List | Out-String)
 </ScriptBlock>
               </ExpressionBinding>
             </CustomItem>
           </CustomEntry>
         </CustomEntries>
       </CustomControl>
-    </Control>
+    </View>
+    <View>
+      <Name>WindowsTerminal.Profile</Name>
+      <ViewSelectedBy>
+        <TypeName>WindowsTerminal.Profile</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Source</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap />
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>$_.Source -split '\.' | Select-Object -Last 1 </ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>CommandLine</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+  </ViewDefinitions>
+  <Controls>
     <Control>
-      <Name>$WTX_setOutputStyle</Name>
+      <Name>${TerminalVelocity_setOutputStyle}</Name>
       <CustomControl>
         <CustomEntries>
           <CustomEntry>
@@ -235,7 +400,7 @@ if ($canUseHTML) {
       </CustomControl>
     </Control>
     <Control>
-      <Name>$WTX_clearOutputStyle</Name>
+      <Name>${TerminalVelocity_clearOutputStyle}</Name>
       <CustomControl>
         <CustomEntries>
           <CustomEntry>
@@ -299,202 +464,4 @@ $BackgroundColor
       </CustomControl>
     </Control>
   </Controls>
-  <ViewDefinitions>
-    <View>
-      <Name>WindowsTerminal.ColorScheme</Name>
-      <ViewSelectedBy>
-        <TypeName>WindowsTerminal.ColorScheme</TypeName>
-      </ViewSelectedBy>
-      <CustomControl>
-        <CustomEntries>
-          <CustomEntry>
-            <CustomItem>
-              <ExpressionBinding>
-                <ItemSelectionCondition>
-                  <ScriptBlock> $host.UI.SupportsVirtualTerminal </ScriptBlock>
-                </ItemSelectionCondition>
-                <ScriptBlock>$moduleName = 'WTX'
-do {
-    $lm = Get-Module -Name $moduleName -ErrorAction Ignore
-    if (-not $lm) { continue } 
-    if ($lm.FormatPartsLoaded) { break }
-    $wholeScript = @(foreach ($formatFilePath in $lm.exportedFormatFiles) {         
-        foreach ($partNodeName in Select-Xml -LiteralPath $formatFilePath -XPath "/Configuration/Controls/Control/Name[starts-with(., '$')]") {
-            $ParentNode = $partNodeName.Node.ParentNode
-            "$($ParentNode.Name)={
-$($ParentNode.CustomControl.CustomEntries.CustomEntry.CustomItem.ExpressionBinding.ScriptBlock)}"
-        }
-    }) -join [Environment]::NewLine
-    New-Module -Name "${ModuleName}.format.ps1xml" -ScriptBlock ([ScriptBlock]::Create(($wholeScript + ';Export-ModuleMember -Variable *'))) |
-        Import-Module -Global
-    $onRemove = [ScriptBlock]::Create("Remove-Module '${ModuleName}.format.ps1xml'")
-    
-    if (-not $lm.OnRemove) {
-        $lm.OnRemove = $onRemove
-    } else {
-        $lm.OnRemove = [ScriptBlock]::Create($onRemove.ToString() + ''  + [Environment]::NewLine + $lm.OnRemove)
-    }
-    $lm | Add-Member NoteProperty FormatPartsLoaded $true -Force
-
-} while ($false)
-
-
-$colorScheme = $_
-$bufferWidth = $host.UI.RawUI.BufferSize.Width
-
-if ($bufferWidth -lt 110){
-@(
-$colorScheme = $_
-. $WTX_setOutputStyle -Foreground $colorScheme.foreground -Background $colorScheme.background
-$colorScheme.name
-. $WTX_clearOutputStyle 
-) -join ''
-return
-} 
-
-@(
-    @(
-
-
-    $bgColors = 'Background','Black','Red','Green', 'Yellow', 'Blue', 'Purple','Cyan','White'
-    $bgColorWidth = $host.UI.RawUI.BufferSize.Width / ($bgColors.Length + 1)
-     
-    $bigEnoughForColors =$host.UI.RawUI.BufferSize.Width -ge 124
-
-    
-
-    $headerLine = 
-    @(for ($n =0; $n -lt $bgColors.Length; $n++) {
-        $colWidth = 
-            if ($n -eq 0) {
-                14
-            } elseif ($n -eq 1) {
-                9
-            } else {
-                $bgColorWidth
-            }
-
-        $space = [Math]::Max(0, $colWidth - $bgColors[$n].Length)
-        "$(' ' * [Math]::Ceiling($space /2))$($bgColors[$n])$(' ' * [Math]::Floor($space /2))|"
-
-    }) -join ''
-
-
-(. $WTX_setOutputStyle -Background $colorScheme.background -foreground $colorScheme.foreground) + 
-    "$('---' + $colorScheme.Name + ('-' * ($headerLine.Length - 4 - $colorScheme.Name.Length)) + '|')" + 
-    ( &amp; $WTX_clearOutputStyle)
-
-#. $WTX_setOutputStyle -Foreground $colorScheme.Foreground -Background $colorScheme.Background
-(. $WTX_setOutputStyle -Background $colorScheme.background -foreground $colorScheme.foreground) + $headerLine + ( &amp; $WTX_clearOutputStyle)
-foreach ($fg in 'Foreground','BrightWhite','Black','BrightBlack',
-    'Red', 'BrightRed','Green','BrightGreen','Yellow','BrightYellow',
-    'Blue','BrightBlue','Purple','BrightPurple', 'Cyan', 'BrightCyan','White','BrightWhite') {
-    $line = ''# . $WTX_setOutputStyle -Foreground $colorScheme.($fg)
-    
-    $line += @(
-    $n = 0
-    
-    foreach ($bg in $bgColors) {
-        $bgColor = $colorScheme.$bg
-
-        &amp; $WTX_setOutputStyle -Background $colorScheme.$bg
-        $t = if ($n -eq 0) {
-            $fg
-            $colWidth = 14
-        } elseif ($n -eq 1) {
-            "$($colorScheme.$fg)"
-            $colWidth = 9
-        } else {
-            if ($bigEnoughForColors) {
-                "$($colorScheme.$fg)"
-            } else {
-                "E.g"
-            }
-            $colWidth = $bgColorWidth
-        }
-        $space = [Math]::Max(0, $colWidth - $t.Length)
-        if ($n -gt 0) {
-            &amp; $WTX_setOutputStyle -Foreground $colorScheme.$fg -Background $bgColor
-        } else {
-            &amp; $WTX_setOutputStyle -Foreground $colorScheme.Foreground -Background $bgColor
-        }
-        "$(' ' * [Math]::Floor($space /2))$t$(' ' * [Math]::Ceiling($space /2))"
-
-        
-        &amp; $WTX_setOutputStyle -Foreground $colorScheme.foreground -Background $colorScheme.background
-        "|"
-        &amp; $WTX_clearOutputStyle
-        $n++
-    }
-    ) -join ''
-    $line.Trim() + ( &amp; $WTX_clearOutputStyle)
-    #"$($fg)".PadRight($host.UI.RawUI.BufferSize.Width)
-}
-) -join [Environment]::NewLine
-&lt;#
-@(
-foreach ($fg in $colorScheme.psobject.properties) {
-    if ($fg.Name -eq 'Name') { continue}
-    . $WTX_setOutputStyle -Foreground $colorScheme.($fg.Name)
-    "$($fg.Name)".PadRight($host.UI.RawUI.BufferSize.Width)
-}
-)
-#&gt;
-. $WTX_clearOutputStyle
-) -join ''
-return
-
-
-
-
-
-</ScriptBlock>
-              </ExpressionBinding>
-              <ExpressionBinding>
-                <ItemSelectionCondition>
-                  <ScriptBlock> -not $Host.ui.SupportsVirtualTerminal </ScriptBlock>
-                </ItemSelectionCondition>
-                <ScriptBlock>
-    $_.Name + ([Environment]::NewLine * 2) + ($_ | Select-Object -Property * -ExcludeProperty Name | Format-List | Out-String)
-</ScriptBlock>
-              </ExpressionBinding>
-            </CustomItem>
-          </CustomEntry>
-        </CustomEntries>
-      </CustomControl>
-    </View>
-    <View>
-      <Name>WindowsTerminal.Profile</Name>
-      <ViewSelectedBy>
-        <TypeName>WindowsTerminal.Profile</TypeName>
-      </ViewSelectedBy>
-      <TableControl>
-        <TableHeaders>
-          <TableColumnHeader>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Source</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-          </TableColumnHeader>
-        </TableHeaders>
-        <TableRowEntries>
-          <TableRowEntry>
-            <Wrap />
-            <TableColumnItems>
-              <TableColumnItem>
-                <PropertyName>Name</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <ScriptBlock>$_.Source -split '\.' | Select-Object -Last 1 </ScriptBlock>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>CommandLine</PropertyName>
-              </TableColumnItem>
-            </TableColumnItems>
-          </TableRowEntry>
-        </TableRowEntries>
-      </TableControl>
-    </View>
-  </ViewDefinitions>
 </Configuration>

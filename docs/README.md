@@ -1,14 +1,12 @@
-﻿### WTX is a PowerShell module that lets you customize Windows Terminal.
 
+#### Installing
 
-#### Installing WTX
-
-WTX is on the PowerShell Gallery.  To Install WTX, run:
+TerminalVelocity is on the PowerShell Gallery.  To Install TerminalVelocity, run:
 ~~~PowerShell
-Install-Module WTX -Scope CurrentUser
+Install-Module TerminalVelocity -Scope CurrentUser
 ~~~
 
-Once you've installed WTX, here are a few handy things you can do with WTX:
+Once you've installed TerminalVelocity, here are a few handy things you can do with TerminalVelocity:
 
 #### Adding a new Profile
 ~~~PowerShell
@@ -50,3 +48,4 @@ Show-WT -ImagePath $home\Pictures\Gif\Whoa.gif
 Get-WTColorScheme AdventureTime # This is formatted by PowerShell to show a preview. 
 ~~~
 ![Previwing Scheme 'AdventureTime'](Assets/Get-WTColorScheme.png)
+

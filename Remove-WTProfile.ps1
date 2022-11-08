@@ -113,11 +113,12 @@
         # Now that we've changed our object, let's update the settings
         if ($PSCmdlet.ShouldProcess("Update $($wtProfile.Path)")) {
 
-            $wtPath = $wtProfile.Path
+            $wtPath = $wtProfile.Path            
             $wtProfile.psobject.properties.Remove('Path')
             $wtProfile |
                 ConvertTo-Json -Depth 100 |
                 Set-Content -LiteralPath $wtPath -Force -Encoding UTF8
+            $wtProfile.psobject.properties.add([PSNoteProperty]::new('Path', $wtPath))
         }
         #endregion Updating Settings
 

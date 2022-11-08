@@ -100,6 +100,7 @@
                     [Threading.Thread]::Sleep(100)
                 }
             } while ($tries)
+            $prof.psobject.properties.add([PSNoteProperty]::new('Path', $wtPath))
         }
 
         if ($WhatIfPreference) {
