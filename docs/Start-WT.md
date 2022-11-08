@@ -31,19 +31,6 @@ Start-WT -Profile PowerShell
 Start-WT -Profile 'Windows PowerShell' -CommandLine 'powershell -nologo'
 ```
 
-#### EXAMPLE 4
-```PowerShell
-[PSCustomObject]@{
-    Profile = 'Windows PowerShell'
-    CommandLine = {powershell -nologo -noexit -command $psVersionTable}
-},
-[PSCustomObject]@{
-    Profile = 'PowerShell'
-    CommandLine = {%programFiles%\PowerShell\7\pwsh -nologo -noexit -command $psVersionTable}
-} |
-    Start-WT -Verbose
-```
-
 ---
 ### Parameters
 #### **ProfileName**
