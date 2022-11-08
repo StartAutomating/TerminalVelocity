@@ -13,16 +13,6 @@
         Start-WT -Profile PowerShell
     .Example
         Start-WT -Profile 'Windows PowerShell' -CommandLine 'powershell -nologo'
-    .Example
-        [PSCustomObject]@{
-            Profile = 'Windows PowerShell'
-            CommandLine = {powershell -nologo -noexit -command $psVersionTable}
-        },
-        [PSCustomObject]@{
-            Profile = 'PowerShell'
-            CommandLine = {%programFiles%\PowerShell\7\pwsh -nologo -noexit -command $psVersionTable}
-        } |
-            Start-WT -Verbose
     #>
     [OutputType([Nullable],[Diagnostics.Process])]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
@@ -83,10 +73,12 @@
     $Elevated
     )
 
+    dynamicParam {
+
+    }
 
     begin {
         $allArgs = [Collections.Generic.List[Object]]::new()
-
     }
     process {
         $allArgs.AddRange(
