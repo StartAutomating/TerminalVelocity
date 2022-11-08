@@ -1,16 +1,3 @@
-﻿@{
-    ModuleVersion='0.3.1'
-    RootModule='TerminalVelocity.psm1'
-    GUID = '3d3087f6-7d8f-484a-aff5-4275c9f61f24'
-    Author = 'James Brundage'
-    Copyright = '2020-2022 Start-Automating'
-    Description = 'Fine tuning Windows Terminal'
-    PrivateData = @{
-        PSData = @{
-            Tags = 'WindowsTerminal','TerminalVelocity'
-            ProjectURI = 'https://github.com/StartAutomating/TerminalVelocity'
-            LicenseURI = 'https://github.com/StartAutomating/TerminalVelocity/blob/main/LICENSE'
-            ReleaseNotes = @'
 ## 0.3.1:
 
 * Rebranded module to TerminalVelocity (Fixes #10)
@@ -61,8 +48,3 @@
   * Included demo of color scheme preview
 
 ---
-'@
-        }
-    }
-    FormatsToProcess = 'TerminalVelocity.format.ps1xml'
-}
