@@ -211,7 +211,7 @@ describe WTX {
     afterAll {
         Remove-Item $wtSettingsPath
 
-        . $wtxModule {
+        . $terminalVelocityModule {
             $script:WTProfilePath = $null
         }
 
