@@ -1,7 +1,7 @@
-﻿#requires -Module Pester, WTX
+﻿#requires -Module Pester, TerminalVelocity
 describe WTX {
     beforeAll { 
-        $wtxModule = Get-Module WTX
+        $terminalVelocityModule = Get-Module TerminalVelocity
 
         $windowsTerminalTestProfile = @{
             '$schema'='https://aka.ms/terminal-profiles-schema'
@@ -145,7 +145,7 @@ describe WTX {
 
 
         $windowsTerminalTestProfile | ConvertTo-Json -Depth 100 | Set-Content $wtSettingsPath -Encoding UTF8
-        . $wtxModule {
+        . $terminalVelocityModule {
             $script:WTProfilePath = Get-Item "$args"
         } $wtSettingsPath
 

@@ -44,5 +44,5 @@
 '@
         }
     }
-    # FormatsToProcess = 'TerminalVelocity.format.ps1xml'
+    FormatsToProcess = 'TerminalVelocity.format.ps1xml'
 }
