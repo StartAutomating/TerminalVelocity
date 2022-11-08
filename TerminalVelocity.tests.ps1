@@ -1,5 +1,5 @@
 ﻿#requires -Module Pester, TerminalVelocity
-describe WTX {
+describe TerminalVelocity {
     beforeAll { 
         $terminalVelocityModule = Get-Module TerminalVelocity
 
