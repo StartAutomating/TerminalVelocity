@@ -103,7 +103,13 @@
     # If set, will force reloading of profile information.
     # By default, the profile object will be cached to improve performance.
     [switch]
-    $Force
+    $Force,
+
+    # By default, an -InputObject and any changes will be merged with the profile object
+    # If -Overwrite is set, Set-WTProfile will overwrite an existing profile object instead.
+    # Note: this should only be done with a complete profile object.
+    [switch]
+    $Overwrite
     )
 
     begin {
@@ -250,28 +256,43 @@
 
 
             if ($targetProfiles) {
-                foreach ($target in $targetProfiles) {
-                    if ($InputObject -is [Collections.IDictionary]) {
-                        foreach ($kv in $InputObject.GetEnumerator()) {
-                            if ([String]::IsNullOrEmpty($kv.Value)) {
-                                $target.psobject.properties.Remove($kv.Key)
+                if ($Overwrite) {
+                    $wtProfile.profiles.list = @(foreach ($prof in $wtProfile.profiles.list) {
+                        if ($prof -in $targetProfiles) {
+                            if ($InputObject -is [Collections.IDictionary]) {
+                                [PSCustomObject]$InputObject
                             } else {
-                                $k = $kv.Key.ToString().Substring(0,1).ToLower() + $kv.Key.ToString().Substring(1)
-                                $target |
-                                    Add-Member NoteProperty $k $kv.Value -Force
+                                $InputObject
                             }
+                        } else {
+                            $prof
                         }
-                    } else {
-                        foreach ($prop in $InputObject.psobject.properties) {
-                            if ([String]::IsNullOrEmpty($prop.Value)) {
-                                $target.psobject.properties.Remove($prop.Name)
-                            } else {
-                                $k = $prop.Name.Substring(0,1).ToLower() + $prop.Name.Substring(1)
-                                $target | Add-Member NoteProperty $prop.Name $prop.Value -Force
+                    })
+                } else {
+                    foreach ($target in $targetProfiles) {
+                        if ($InputObject -is [Collections.IDictionary]) {                    
+                            foreach ($kv in $InputObject.GetEnumerator()) {
+                                if ([String]::IsNullOrEmpty($kv.Value)) {
+                                    $target.psobject.properties.Remove($kv.Key)
+                                } else {
+                                    $k = $kv.Key.ToString().Substring(0,1).ToLower() + $kv.Key.ToString().Substring(1)
+                                    $target |
+                                        Add-Member NoteProperty $k $kv.Value -Force
+                                }
+                            }
+                        } else {
+                            foreach ($prop in $InputObject.psobject.properties) {
+                                if ([String]::IsNullOrEmpty($prop.Value)) {
+                                    $target.psobject.properties.Remove($prop.Name)
+                                } else {
+                                    $k = $prop.Name.Substring(0,1).ToLower() + $prop.Name.Substring(1)
+                                    $target | Add-Member NoteProperty $prop.Name $prop.Value -Force
+                                }
                             }
                         }
                     }
                 }
+                
                 $changed = $true
             } else {
                 Write-Warning "No Target profiles!"
