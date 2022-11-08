@@ -1,7 +1,7 @@
 #requires -Module EZOut
 #  Install-Module EZOut or https://github.com/StartAutomating/EZOut
 $myFile = $MyInvocation.MyCommand.ScriptBlock.File
-$myModuleName = 'WTX'
+$myModuleName = 'TerminalVelocity'
 $myRoot = $myFile | Split-Path
 Push-Location $myRoot
 $formatting = @(

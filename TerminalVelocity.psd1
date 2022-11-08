@@ -1,6 +1,6 @@
 ﻿@{
     ModuleVersion='0.3'
-    RootModule='WTX.psm1'
+    RootModule='TerminalVelocity.psm1'
     GUID = '4dbcc223-a65a-4970-ac98-a24e95cec9a8'
     Author = 'James Brundage'
     Copyright = '2020 Start-Automating'
