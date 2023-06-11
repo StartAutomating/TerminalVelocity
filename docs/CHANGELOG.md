@@ -48,4 +48,3 @@
   * Included demo of color scheme preview
 
 ---
-
