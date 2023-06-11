@@ -1,9 +1,17 @@
 Get-WTProfile
 -------------
+
+
+
+
 ### Synopsis
 Gets a Windows Terminal Profiles
 
+
+
 ---
+
+
 ### Description
 
 Gets Windows Terminal profiles.
@@ -14,13 +22,21 @@ To get the global profile, use Get-WTProfile -Global
 
 To get color schemes, use Get-WTProfile -ColorScheme *
 
+
+
 ---
+
+
 ### Related Links
 * [Set-WTProfile](Set-WTProfile.md)
 
 
 
+
+
 ---
+
+
 ### Examples
 #### EXAMPLE 1
 ```PowerShell
@@ -32,7 +48,11 @@ Get-WTProfile
 Get-WTProfile -Global
 ```
 
+
+
 ---
+
+
 ### Parameters
 #### **ProfileName**
 
@@ -40,119 +60,105 @@ Returns Windows Terminal tab profiles, by name.
 
 
 
-> **Type**: ```[String[]]```
-
-> **Required**: false
-
-> **Position**: named
-
-> **PipelineInput**:true (ByPropertyName)
 
 
 
----
+|Type        |Required|Position|PipelineInput        |Aliases|
+|------------|--------|--------|---------------------|-------|
+|`[String[]]`|false   |named   |true (ByPropertyName)|Name   |
+
+
+
 #### **Guid**
 
 Returns Windows Terminal tab profiles, by GUID.
 
 
 
-> **Type**: ```[Guid[]]```
-
-> **Required**: false
-
-> **Position**: named
-
-> **PipelineInput**:true (ByPropertyName)
 
 
 
----
+|Type      |Required|Position|PipelineInput        |
+|----------|--------|--------|---------------------|
+|`[Guid[]]`|false   |named   |true (ByPropertyName)|
+
+
+
 #### **ColorScheme**
 
 Returns Windows Terminal Color Schemes
 
 
 
-> **Type**: ```[String[]]```
-
-> **Required**: false
-
-> **Position**: named
-
-> **PipelineInput**:true (ByPropertyName)
 
 
 
----
+|Type        |Required|Position|PipelineInput        |
+|------------|--------|--------|---------------------|
+|`[String[]]`|false   |named   |true (ByPropertyName)|
+
+
+
 #### **Setting**
 
 If -Setting is present, Get-WTProfile returns the global settings.
 
 
 
-> **Type**: ```[Switch]```
-
-> **Required**: true
-
-> **Position**: named
-
-> **PipelineInput**:true (ByPropertyName)
 
 
 
----
+|Type      |Required|Position|PipelineInput        |Aliases                                                 |
+|----------|--------|--------|---------------------|--------------------------------------------------------|
+|`[Switch]`|true    |named   |true (ByPropertyName)|Global<br/>Settings<br/>GlobalSetting<br/>GlobalSettings|
+
+
+
 #### **Default**
 
 If -Default is present, Get-WTProfile returns the default profile settings.
 
 
 
-> **Type**: ```[Switch]```
-
-> **Required**: true
-
-> **Position**: named
-
-> **PipelineInput**:true (ByPropertyName)
 
 
 
----
+|Type      |Required|Position|PipelineInput        |Aliases |
+|----------|--------|--------|---------------------|--------|
+|`[Switch]`|true    |named   |true (ByPropertyName)|Defaults|
+
+
+
 #### **Current**
 
 If -Current is present, Get-WTProfile attempts to determine the current profile
 
 
 
-> **Type**: ```[Switch]```
-
-> **Required**: true
-
-> **Position**: named
-
-> **PipelineInput**:true (ByPropertyName)
 
 
 
----
+|Type      |Required|Position|PipelineInput        |
+|----------|--------|--------|---------------------|
+|`[Switch]`|true    |named   |true (ByPropertyName)|
+
+
+
 #### **KeyBinding**
 
 If -KeyBinding is present, Get-WTProfile will return keybindings.
 
 
 
-> **Type**: ```[Switch]```
-
-> **Required**: true
-
-> **Position**: named
-
-> **PipelineInput**:true (ByPropertyName)
 
 
 
----
+|Type      |Required|Position|PipelineInput        |Aliases             |
+|----------|--------|--------|---------------------|--------------------|
+|`[Switch]`|true    |named   |true (ByPropertyName)|Keys<br/>KeyBindings|
+
+
+
 #### **Force**
 
 If set, will force reloading of profile information.
@@ -160,17 +166,20 @@ By default, the profile object will be cached to improve performance.
 
 
 
-> **Type**: ```[Switch]```
 
-> **Required**: false
 
-> **Position**: named
 
-> **PipelineInput**:false
+|Type      |Required|Position|PipelineInput|
+|----------|--------|--------|-------------|
+|`[Switch]`|false   |named   |false        |
+
+
 
 
 
 ---
+
+
 ### Outputs
 * WindowsTerminal.Profile
 
@@ -180,7 +189,11 @@ By default, the profile object will be cached to improve performance.
 
 
 
+
+
 ---
+
+
 ### Syntax
 ```PowerShell
 Get-WTProfile [-ProfileName <String[]>] [-Force] [<CommonParameters>]
@@ -203,4 +216,3 @@ Get-WTProfile -Current [-Force] [<CommonParameters>]
 ```PowerShell
 Get-WTProfile -KeyBinding [-Force] [<CommonParameters>]
 ```
----
