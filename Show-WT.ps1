@@ -10,7 +10,7 @@
     .Example
         Show-WT -ImagePath .\My.gif  # Shows My.gif in the current Windows Terminal profile.
     .Example
-        Show-WT -ImagePath .\My.gif -Wait -1 # Shows My.gif forever
+        Show-WT -ImagePath .\My.gif -Duration -1 # Shows My.gif forever
     .Link
         Get-WTProfile
     .Link
