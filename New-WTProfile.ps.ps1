@@ -20,5 +20,4 @@
     )]
     [JSONSchema(SchemaUri='https://aka.ms/terminal-profiles-schema#Profile',RemovePropertyPrefix='Experimental')]
     param()
-    
 }
